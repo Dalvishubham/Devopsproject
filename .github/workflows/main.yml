@@ -1,0 +1,54 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Cache Maven dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+
+      - name: Debug
+        run: |
+          pwd
+          ls -la
+          echo "Java Home: $JAVA_HOME"
+          java -version
+          mvn -version
+
+      - name: Build with Maven
+        run: |
+          cd /home/runner/work/Devopsproject/Devopsproject/demo
+          mvn clean package
+        working-directory: /home/runner/work/Devopsproject/Devopsproject/demo
+
+      - name: Run tests
+        run: |
+          cd /home/runner/work/Devopsproject/Devopsproject/demo
+          mvn test
+        working-directory: /home/runner/work/Devopsproject/Devopsproject/demo
+
+      - name: Run PMD static code analysis
+        run: |
+          cd /home/runner/work/Devopsproject/Devopsproject/demo
+          mvn pmd:check
+        working-directory: /home/runner/work/Devopsproject/Devopsproject/demo
